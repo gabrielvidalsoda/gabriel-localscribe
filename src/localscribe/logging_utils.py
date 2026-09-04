@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import sys
 import time
+from contextlib import contextmanager
+from typing import Iterator
 
 
 def configure_stdout_utf8() -> None:
@@ -21,3 +23,18 @@ def log(message: str) -> None:
 
     timestamp = time.strftime("%H:%M:%S")
     print(f"[{timestamp}] {message}", flush=True)
+
+
+@contextmanager
+def timed_step(description: str) -> Iterator[None]:
+    """Logs `<description>...` when a step starts and `<description> done
+    (X.Xs)` when it ends (even if it raises), so every step in the pipeline
+    is visible with its own duration in seconds."""
+
+    log(f"{description}...")
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - start
+        log(f"{description} done ({elapsed:.1f}s)")
